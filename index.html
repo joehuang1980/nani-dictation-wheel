@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fff8e7">
+<title>南一三上生字聽寫輪盤</title>
+<style>
+:root {
+  --bg:#fff8e7; --card:#ffffff; --ink:#24313d; --muted:#66727f;
+  --accent:#f59e0b; --accent2:#2563eb; --good:#15803d; --bad:#b91c1c;
+  --line:#e6e0d5; --soft:#fff3c7; --shadow:0 12px 30px rgba(36,49,61,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{padding:calc(14px + env(safe-area-inset-top)) 14px calc(22px + env(safe-area-inset-bottom))}
+button,input,select,summary{font:inherit}
+button{touch-action:manipulation}
+.wrap{max-width:980px;margin:auto}
+.hero{display:flex;gap:14px;align-items:center;justify-content:space-between;margin:2px 0 14px}
+.hero h1{font-size:clamp(24px,5vw,38px);margin:0;line-height:1.1}
+.hero p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.badge{background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:999px;white-space:nowrap;font-weight:800}
+.grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.1fr);gap:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr} .hero{align-items:flex-start;flex-direction:column}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px}
+.card h2{margin:0 0 12px;font-size:20px}
+.small{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.field{display:grid;gap:6px;margin-bottom:12px}
+label{font-weight:700;font-size:14px}
+input[type=text],input[type=number],select,textarea{width:100%;border:1px solid #cfd6dc;border-radius:14px;padding:12px;background:#fff;color:var(--ink);font-size:16px}
+.lesson-list{display:flex;flex-wrap:wrap;gap:8px}
+.lesson-chip{position:relative}
+.lesson-chip input{position:absolute;opacity:0;pointer-events:none}
+.lesson-chip span{display:block;padding:10px 13px;border:1px solid #d9d4c9;border-radius:999px;background:#fff;font-weight:800;min-width:54px;text-align:center}
+.lesson-chip input:checked+span{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+.checkline{display:flex;gap:9px;align-items:center;padding:10px 12px;border-radius:14px;background:#f7f8fa}
+.btn{border:0;border-radius:16px;padding:13px 16px;font-weight:900;cursor:pointer;min-height:48px}
+.btn.primary{background:var(--accent);color:#2b2105}
+.btn.blue{background:var(--accent2);color:#fff}
+.btn.good{background:var(--good);color:#fff}
+.btn.bad{background:var(--bad);color:#fff}
+.btn.ghost{background:#f4f5f7;color:var(--ink);border:1px solid #d9dde1}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.full{width:100%}
+.wheel-wrap{display:grid;place-items:center;position:relative;margin:2px auto 10px;max-width:390px}
+#wheel{width:min(78vw,360px);height:min(78vw,360px);max-width:360px;max-height:360px;display:block}
+.pointer{position:absolute;top:0;left:50%;transform:translate(-50%,-7px);width:0;height:0;
+ border-left:18px solid transparent;border-right:18px solid transparent;border-top:0;border-bottom:32px solid #ef4444;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18))}
+.center-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:white;border:7px solid #27364a;display:grid;place-items:center;font-size:23px;font-weight:1000}
+.progressline{height:10px;background:#eceff2;border-radius:999px;overflow:hidden;margin:8px 0}
+.progressbar{height:100%;background:#22c55e;width:0%;transition:width .25s}
+.question{text-align:center;background:linear-gradient(180deg,#fffaf0,#fff);border:1px dashed #e0b65b;border-radius:20px;padding:16px;margin-top:12px}
+.qstate{font-size:15px;color:var(--muted);font-weight:800}
+.answer{font-size:clamp(40px,10vw,72px);font-weight:1000;letter-spacing:.08em;margin:10px 0}
+.answer .target{color:#dc2626;text-decoration:underline;text-decoration-thickness:.09em;text-underline-offset:.12em}
+.hidden-answer{font-size:clamp(30px,8vw,54px);font-weight:1000;letter-spacing:.14em;margin:16px 0;color:#9aa3ad}
+.note{background:#f8fafc;border-left:4px solid #60a5fa;padding:10px 12px;border-radius:10px;margin:10px 0;font-size:14px}
+.pills{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.pill{padding:6px 10px;border-radius:999px;background:#eef2ff;font-size:13px;font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.stat{background:#f8fafc;border-radius:16px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px}
+.result-list{display:flex;flex-wrap:wrap;gap:8px}
+.result-word{padding:8px 10px;border-radius:12px;background:#fff1f2;border:1px solid #fecdd3;font-weight:900}
+details{margin-top:14px}
+summary{cursor:pointer;font-weight:900;padding:10px 2px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:370px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid #ece9e2;text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:#fffaf0;z-index:1}
+footer{text-align:center;color:var(--muted);font-size:12px;margin:18px 0 4px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+ background:#1f2937;color:#fff;padding:11px 16px;border-radius:14px;opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sep{height:1px;background:var(--line);margin:14px 0}
+code{background:#f1f5f9;padding:2px 5px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <h1>🎡 南一三上生字聽寫輪盤</h1>
+      <p>1–6 課｜聽題不看答案｜iPad 觸控友善｜可擴充詞庫</p>
+    </div>
+    <div class="badge" id="bankBadge">詞庫載入中…</div>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="setupTitle">
+      <h2 id="setupTitle">① 設定這一輪</h2>
+      <div class="field">
+        <label for="studentName">學生姓名</label>
+        <input id="studentName" type="text" inputmode="text" placeholder="例如：宇樘" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>選擇課次</label>
+        <div class="lesson-list" id="lessonList"></div>
+      </div>
+      <div class="field">
+        <label for="questionCount">本輪題數</label>
+        <select id="questionCount">
+          <option value="5">5 題</option>
+          <option value="10" selected>10 題</option>
+          <option value="15">15 題</option>
+          <option value="20">20 題</option>
+          <option value="30">30 題</option>
+          <option value="all">全部符合題目</option>
+        </select>
+      </div>
+      <label class="checkline">
+        <input id="reviewOnly" type="checkbox">
+        <span>只抽「需要再練習」的錯題</span>
+      </label>
+      <div class="field" style="margin-top:12px">
+        <label for="speechRate">朗讀速度：<span id="rateLabel">0.82×</span></label>
+        <input id="speechRate" type="range" min="0.6" max="1.05" step="0.05" value="0.82">
+      </div>
+      <button class="btn blue full" id="startBtn">開始／重新建立本輪題庫</button>
+      <div class="note">
+        輪盤不顯示語詞，避免先看到答案；抽中後會朗讀題目。若 iPad 沒有自動出聲，直接點「🔊 再聽一次」即可。
+      </div>
+
+      <details>
+        <summary>📚 查看初始詞庫</summary>
+        <div class="small" id="coverageText"></div>
+        <div class="table-wrap" style="margin-top:8px">
+          <table>
+            <thead><tr><th>課次</th><th>語詞</th><th>複習生字</th></tr></thead>
+            <tbody id="wordTable"></tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="gameTitle">
+      <h2 id="gameTitle">② 轉輪盤出題</h2>
+      <div class="row" style="justify-content:space-between">
+        <div class="small" id="sessionLabel">尚未開始</div>
+        <div class="small"><b id="remainingLabel">0</b> 題待抽</div>
+      </div>
+      <div class="progressline"><div class="progressbar" id="progressBar"></div></div>
+
+      <div class="wheel-wrap">
+        <canvas id="wheel" width="360" height="360" aria-label="聽寫題目輪盤"></canvas>
+        <div class="pointer" aria-hidden="true"></div>
+        <div class="center-dot" aria-hidden="true">?</div>
+      </div>
+      <button class="btn primary full" id="spinBtn" disabled>🎯 轉輪盤抽下一題</button>
+
+      <div class="question" id="questionPanel">
+        <div class="qstate" id="questionState">先建立本輪題庫</div>
+        <div class="hidden-answer" id="hiddenAnswer">？ ？</div>
+        <div class="answer" id="answer" hidden></div>
+        <div class="pills" id="answerMeta" hidden></div>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" id="speakBtn" disabled>🔊 再聽一次</button>
+          <button class="btn ghost" id="revealBtn" disabled>👀 顯示答案</button>
+        </div>
+        <div class="row" id="scoreRow" style="justify-content:center;margin-top:10px" hidden>
+          <button class="btn good" id="correctBtn">✅ 答對</button>
+          <button class="btn bad" id="wrongBtn">🔁 再練習</button>
+        </div>
+      </div>
+
+      <div id="results" hidden style="margin-top:14px">
+        <div class="sep"></div>
+        <h2>③ 本輪結果</h2>
+        <div class="stats">
+          <div class="stat"><b id="rTotal">0</b><span>完成</span></div>
+          <div class="stat"><b id="rCorrect">0</b><span>答對</span></div>
+          <div class="stat"><b id="rAccuracy">0%</b><span>正確率</span></div>
+        </div>
+        <div class="small" style="margin-bottom:7px">需要再練習</div>
+        <div class="result-list" id="wrongList"></div>
+        <button class="btn ghost full" id="reviewWrongBtn" style="margin-top:10px">只練本機錯題</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:14px">
+    <details>
+      <summary>🧑‍🏫 教師／家長工具：擴充詞庫與紀錄</summary>
+      <p class="small">
+        在此 iPad 新增的語詞會儲存在瀏覽器本機。若要讓所有裝置都看到新詞，請匯出 JSON 後，以它更新 GitHub 儲存庫中的 <code>words.json</code>。
+      </p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+        <div>
+          <h2 style="font-size:17px">新增一個語詞</h2>
+          <div class="field"><label for="newLesson">課次（可多課，用逗號分隔）</label><input id="newLesson" type="text" placeholder="例如：7 或 3,6"></div>
+          <div class="field"><label for="newWord">語詞</label><input id="newWord" type="text" placeholder="例如：新語詞"></div>
+          <div class="field"><label for="newTargets">要複習的生字</label><input id="newTargets" type="text" placeholder="例如：新詞"></div>
+          <button class="btn blue" id="addWordBtn">＋ 加入本機詞庫</button>
+        </div>
+        <div>
+          <h2 style="font-size:17px">詞庫檔案</h2>
+          <div class="row">
+            <button class="btn ghost" id="exportBankBtn">⬇️ 匯出 words.json</button>
+            <label class="btn ghost" for="importBankInput" style="display:inline-flex;align-items:center">⬆️ 匯入 JSON</label>
+            <input id="importBankInput" type="file" accept="application/json,.json" hidden>
+          </div>
+          <button class="btn ghost" id="resetBankBtn" style="margin-top:9px">恢復 GitHub／內建詞庫</button>
+          <div class="sep"></div>
+          <h2 style="font-size:17px">學習紀錄</h2>
+          <div class="row">
+            <button class="btn ghost" id="exportRecordBtn">⬇️ 匯出答題紀錄</button>
+            <button class="btn ghost" id="clearRecordBtn">清除本機紀錄</button>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    初始資料：南一三上 1–6 課生字＋既有累積生字。所有功能均在瀏覽器端執行，不會把學生姓名或答題紀錄上傳到伺服器。
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const EMBEDDED_WORDS = [{"id": "W001", "word": "泥巴", "lessons": [1], "targets": ["泥"], "note": ""}, {"id": "W002", "word": "化石", "lessons": [1], "targets": ["化"], "note": ""}, {"id": "W003", "word": "山雀", "lessons": [1], "targets": ["雀"], "note": ""}, {"id": "W004", "word": "輕快", "lessons": [1], "targets": ["輕"], "note": ""}, {"id": "W005", "word": "羽衣", "lessons": [1], "targets": ["羽", "衣"], "note": ""}, {"id": "W006", "word": "衣服", "lessons": [1], "targets": ["衣"], "note": ""}, {"id": "W007", "word": "脆皮", "lessons": [1], "targets": ["脆"], "note": ""}, {"id": "W008", "word": "頭髮", "lessons": [1], "targets": ["髮"], "note": ""}, {"id": "W009", "word": "到處", "lessons": [1], "targets": ["處"], "note": ""}, {"id": "W010", "word": "旅行", "lessons": [1], "targets": ["旅", "行"], "note": ""}, {"id": "W011", "word": "行走", "lessons": [1], "targets": ["行"], "note": ""}, {"id": "W012", "word": "平安", "lessons": [1], "targets": ["平"], "note": ""}, {"id": "W013", "word": "男生", "lessons": [1], "targets": ["男"], "note": ""}, {"id": "W014", "word": "朗讀", "lessons": [1], "targets": ["朗"], "note": ""}, {"id": "W015", "word": "滿足", "lessons": [1], "targets": ["足"], "note": ""}, {"id": "W016", "word": "走廊", "lessons": [2], "targets": ["廊"], "note": ""}, {"id": "W017", "word": "訂正", "lessons": [2], "targets": ["訂"], "note": ""}, {"id": "W018", "word": "班級", "lessons": [2], "targets": ["班", "級"], "note": ""}, {"id": "W019", "word": "約定", "lessons": [2], "targets": ["約"], "note": ""}, {"id": "W020", "word": "紛紛", "lessons": [2], "targets": ["紛", "紛"], "note": ""}, {"id": "W021", "word": "持有", "lessons": [2], "targets": ["持"], "note": ""}, {"id": "W022", "word": "記錄", "lessons": [2], "targets": ["記", "錄"], "note": ""}, {"id": "W023", "word": "聊天", "lessons": [2], "targets": ["聊"], "note": ""}, {"id": "W024", "word": "發言", "lessons": [2], "targets": ["言"], "note": ""}, {"id": "W025", "word": "熱烈", "lessons": [2], "targets": ["烈"], "note": ""}, {"id": "W026", "word": "這些", "lessons": [2], "targets": ["些"], "note": ""}, {"id": "W027", "word": "提高", "lessons": [2], "targets": ["提"], "note": ""}, {"id": "W028", "word": "發愁", "lessons": [2], "targets": ["愁"], "note": ""}, {"id": "W029", "word": "短跑", "lessons": [3], "targets": ["短"], "note": ""}, {"id": "W030", "word": "時鐘", "lessons": [3], "targets": ["鐘"], "note": ""}, {"id": "W031", "word": "鬼怪", "lessons": [3], "targets": ["鬼"], "note": ""}, {"id": "W032", "word": "熱鬧", "lessons": [3], "targets": ["鬧"], "note": ""}, {"id": "W033", "word": "準時", "lessons": [3], "targets": ["準"], "note": ""}, {"id": "W034", "word": "朝向", "lessons": [3], "targets": ["朝"], "note": ""}, {"id": "W035", "word": "舞蹈", "lessons": [3], "targets": ["蹈"], "note": ""}, {"id": "W036", "word": "表面", "lessons": [3], "targets": ["表"], "note": ""}, {"id": "W037", "word": "暢快", "lessons": [3], "targets": ["暢"], "note": ""}, {"id": "W038", "word": "無法", "lessons": [3], "targets": ["無"], "note": ""}, {"id": "W039", "word": "總是", "lessons": [3], "targets": ["總"], "note": ""}, {"id": "W040", "word": "響亮", "lessons": [3], "targets": ["響"], "note": ""}, {"id": "W041", "word": "忘記", "lessons": [2, 3], "targets": ["忘", "記"], "note": ""}, {"id": "W042", "word": "盡力", "lessons": [3], "targets": ["盡"], "note": ""}, {"id": "W043", "word": "負責", "lessons": [3, 6], "targets": ["負", "責"], "note": ""}, {"id": "W044", "word": "悶熱", "lessons": [4], "targets": ["悶"], "note": ""}, {"id": "W045", "word": "煩惱", "lessons": [4], "targets": ["煩", "惱"], "note": ""}, {"id": "W046", "word": "吵鬧", "lessons": [3, 4], "targets": ["吵", "鬧"], "note": ""}, {"id": "W047", "word": "勉強", "lessons": [4], "targets": ["勉", "強"], "note": ""}, {"id": "W048", "word": "耐心", "lessons": [4], "targets": ["耐"], "note": ""}, {"id": "W049", "word": "脾氣", "lessons": [4], "targets": ["脾"], "note": ""}, {"id": "W050", "word": "了解", "lessons": [4], "targets": ["解"], "note": ""}, {"id": "W051", "word": "中央", "lessons": [4], "targets": ["央"], "note": ""}, {"id": "W052", "word": "大霧", "lessons": [4], "targets": ["霧"], "note": ""}, {"id": "W053", "word": "緊張", "lessons": [4], "targets": ["緊"], "note": ""}, {"id": "W054", "word": "尖叫", "lessons": [4], "targets": ["尖"], "note": ""}, {"id": "W055", "word": "雖然", "lessons": [4], "targets": ["雖"], "note": ""}, {"id": "W056", "word": "嗓音", "lessons": [4], "targets": ["嗓"], "note": ""}, {"id": "W057", "word": "龍王", "lessons": [5], "targets": ["龍"], "note": ""}, {"id": "W058", "word": "沖洗", "lessons": [5], "targets": ["沖"], "note": ""}, {"id": "W059", "word": "身體", "lessons": [5], "targets": ["體"], "note": ""}, {"id": "W060", "word": "兄弟", "lessons": [5], "targets": ["兄"], "note": ""}, {"id": "W061", "word": "吐出", "lessons": [5], "targets": ["吐"], "note": ""}, {"id": "W062", "word": "轉身", "lessons": [5], "targets": ["轉"], "note": ""}, {"id": "W063", "word": "歪頭", "lessons": [5], "targets": ["歪"], "note": ""}, {"id": "W064", "word": "防水", "lessons": [5], "targets": ["防"], "note": ""}, {"id": "W065", "word": "警告", "lessons": [5], "targets": ["警"], "note": ""}, {"id": "W066", "word": "鈴聲", "lessons": [5], "targets": ["鈴"], "note": ""}, {"id": "W067", "word": "注意", "lessons": [5], "targets": ["注"], "note": ""}, {"id": "W068", "word": "人員", "lessons": [5], "targets": ["員"], "note": ""}, {"id": "W069", "word": "受傷", "lessons": [5], "targets": ["傷"], "note": ""}, {"id": "W070", "word": "死去", "lessons": [5], "targets": ["死"], "note": ""}, {"id": "W071", "word": "原諒", "lessons": [5], "targets": ["諒"], "note": ""}, {"id": "W072", "word": "開幕", "lessons": [6], "targets": ["幕"], "note": ""}, {"id": "W073", "word": "水杯", "lessons": [6], "targets": ["杯"], "note": ""}, {"id": "W074", "word": "流動", "lessons": [6], "targets": ["流"], "note": ""}, {"id": "W075", "word": "溼透", "lessons": [6], "targets": ["溼", "透"], "note": ""}, {"id": "W076", "word": "雙手", "lessons": [6], "targets": ["雙"], "note": ""}, {"id": "W077", "word": "胸口", "lessons": [6], "targets": ["胸"], "note": ""}, {"id": "W078", "word": "逃走", "lessons": [6], "targets": ["逃"], "note": ""}, {"id": "W079", "word": "辦法", "lessons": [6], "targets": ["辦"], "note": ""}, {"id": "W080", "word": "露出", "lessons": [6], "targets": ["露"], "note": ""}, {"id": "W081", "word": "問題", "lessons": [6], "targets": ["題"], "note": ""}, {"id": "W082", "word": "部分", "lessons": [6], "targets": ["部"], "note": ""}, {"id": "W083", "word": "灰白", "lessons": [6], "targets": ["灰"], "note": ""}, {"id": "W084", "word": "剪開", "lessons": [6], "targets": ["剪"], "note": ""}];
+const BASE_TARGETS = new Set("泥化雀輕羽衣脆髮處旅行平男朗足廊訂班級約紛持記錄聊言烈些提愁短鐘鬼鬧準朝蹈表暢無總響忘盡責悶煩惱吵勉強耐脾解央霧緊尖雖嗓龍沖體兄吐轉歪防警鈴注員傷死諒幕杯流溼透雙胸負逃辦露題部灰剪".split(""));
+const STORAGE = {
+  stats:"naniDictation.stats.v1", history:"naniDictation.history.v1",
+  bank:"naniDictation.bankOverride.v1", student:"naniDictation.student.v1"
+};
+const state = {
+  bank:[], source:"embedded", pool:[], remaining:[], current:null, currentRevealed:false,
+  attempts:[], spinning:false, rotation:0, sessionStarted:false, voices:[]
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+function toast(msg) {
+  const el=$("#toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2200);
+}
+function readJSON(key,fallback) {
+  try { const v=localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function saveJSON(key,value) { localStorage.setItem(key,JSON.stringify(value)); }
+function stats() { return readJSON(STORAGE.stats,{}); }
+function normalizeBank(items) {
+  if(!Array.isArray(items)) throw new Error("詞庫 items 必須是陣列");
+  const seen=new Set();
+  return items.map((raw,i)=>{
+    const word=String(raw.word||"").trim();
+    if(!word) throw new Error(`第 ${i+1} 筆缺少 word`);
+    const id=String(raw.id||`U${i+1}-${word}`).trim();
+    let lessons=raw.lessons ?? raw.lesson ?? [];
+    if(!Array.isArray(lessons)) lessons=String(lessons).split(/[,，\s]+/);
+    lessons=[...new Set(lessons.map(Number).filter(n=>Number.isFinite(n)&&n>0))].sort((a,b)=>a-b);
+    let targets=raw.targets ?? raw.target ?? [];
+    if(Array.isArray(targets)) targets=targets.join("");
+    targets=[...new Set(String(targets).replace(/[\s,，]/g,"").split("").filter(Boolean))];
+    const finalId=seen.has(id)? `${id}-${i}` : id; seen.add(finalId);
+    return {id:finalId,word,lessons,targets,note:String(raw.note||"")};
+  });
+}
+async function loadBank() {
+  const override=readJSON(STORAGE.bank,null);
+  if(override?.items) {
+    state.bank=normalizeBank(override.items); state.source="本機自訂";
+  } else {
+    let loaded=false;
+    if(location.protocol.startsWith("http")) {
+      try {
+        const r=await fetch("./words.json",{cache:"no-store"});
+        if(r.ok) {
+          const j=await r.json();
+          state.bank=normalizeBank(j.items||j); state.source="words.json"; loaded=true;
+        }
+      } catch(e) {}
+    }
+    if(!loaded) { state.bank=normalizeBank(EMBEDDED_WORDS); state.source="內建"; }
+  }
+  refreshBankUI();
+}
+function uniqueLessons() {
+  return [...new Set(state.bank.flatMap(x=>x.lessons))].sort((a,b)=>a-b);
+}
+function renderLessons() {
+  const box=$("#lessonList"); box.innerHTML="";
+  uniqueLessons().forEach(n=>{
+    const label=document.createElement("label"); label.className="lesson-chip";
+    const input=document.createElement("input"); input.type="checkbox"; input.value=n; input.checked=n<=6;
+    input.addEventListener("change",updateEligibleHint);
+    const span=document.createElement("span"); span.textContent=`第${n}課`;
+    label.append(input,span); box.append(label);
+  });
+}
+function selectedLessons() {
+  return $$("#lessonList input:checked").map(x=>Number(x.value));
+}
+function eligibleWords() {
+  const selected=new Set(selectedLessons());
+  const s=stats();
+  return state.bank.filter(item=>item.lessons.some(l=>selected.has(l)))
+    .filter(item=>!$("#reviewOnly").checked || s[item.id]?.needsReview===true);
+}
+function updateEligibleHint() {
+  const n=eligibleWords().length;
+  $("#startBtn").textContent=`開始／重新建立本輪題庫（可用 ${n} 詞）`;
+}
+function refreshBankUI() {
+  renderLessons();
+  const targetChars=[...new Set(state.bank.flatMap(x=>x.targets))];
+  $("#bankBadge").textContent=`${state.bank.length} 個語詞`;
+  $("#coverageText").textContent=`目前詞庫：${state.bank.length} 個不重複語詞；標記 ${targetChars.length} 個複習生字。初始版完整覆蓋三上 1–6 課 90 個生字。資料來源：${state.source}。`;
+  const tbody=$("#wordTable"); tbody.innerHTML="";
+  [...state.bank].sort((a,b)=>(Math.min(...a.lessons)-Math.min(...b.lessons))||a.word.localeCompare(b.word,"zh-Hant")).forEach(item=>{
+    const tr=document.createElement("tr");
+    [item.lessons.join("、"), item.word, item.targets.join("")].forEach(t=>{const td=document.createElement("td");td.textContent=t;tr.append(td)});
+    tbody.append(tr);
+  });
+  updateEligibleHint();
+}
+function shuffle(arr) {
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function startSession() {
+  const name=$("#studentName").value.trim();
+  localStorage.setItem(STORAGE.student,name);
+  const eligible=eligibleWords();
+  if(!selectedLessons().length) return toast("請至少選一課");
+  if(!eligible.length) return toast($("#reviewOnly").checked ? "目前沒有需要再練習的錯題" : "沒有可用語詞");
+  const q=$("#questionCount").value;
+  const count=q==="all" ? eligible.length : Math.min(Number(q),eligible.length);
+  state.pool=shuffle(eligible).slice(0,count);
+  state.remaining=[...state.pool];
+  state.current=null; state.currentRevealed=false; state.attempts=[];
+  state.sessionStarted=true; state.spinning=false; state.rotation=0;
+  $("#results").hidden=true;
+  $("#sessionLabel").textContent=`${name||"本次"}｜${count} 題｜第 ${selectedLessons().join("、")} 課`;
+  resetQuestionPanel();
+  updateGameUI(); drawWheel();
+  $("#spinBtn").disabled=false;
+  toast("本輪題庫已建立，開始轉輪盤！");
+}
+function resetQuestionPanel() {
+  $("#questionState").textContent=state.sessionStarted ? "準備抽題" : "先建立本輪題庫";
+  $("#hiddenAnswer").hidden=false; $("#hiddenAnswer").textContent="？ ？";
+  $("#answer").hidden=true; $("#answerMeta").hidden=true; $("#scoreRow").hidden=true;
+  $("#speakBtn").disabled=true; $("#revealBtn").disabled=true;
+}
+function updateGameUI() {
+  $("#remainingLabel").textContent=state.remaining.length;
+  const done=state.attempts.length, total=state.pool.length||0;
+  $("#progressBar").style.width=total ? `${Math.round(done/total*100)}%` : "0%";
+  $("#spinBtn").disabled=!state.sessionStarted || state.spinning || !!state.current || state.remaining.length===0;
+}
+function getCanvasSize() {
+  const canvas=$("#wheel"), rect=canvas.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
+  const css=Math.max(260,Math.min(rect.width||360,360));
+  if(canvas.width!==Math.round(css*dpr)||canvas.height!==Math.round(css*dpr)) {
+    canvas.width=Math.round(css*dpr); canvas.height=Math.round(css*dpr);
+  }
+  return {canvas,ctx:canvas.getContext("2d"),css,dpr};
+}
+const wheelColors=["#fde68a","#bfdbfe","#bbf7d0","#fecdd3","#ddd6fe","#fed7aa","#bae6fd","#d9f99d","#fbcfe8","#c7d2fe","#ccfbf1","#fef3c7"];
+function drawWheel(rotation=state.rotation) {
+  const {canvas,ctx,css,dpr}=getCanvasSize();
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,css,css);
+  const cx=css/2,cy=css/2,r=css/2-8;
+  const n=Math.max(1,Math.min(state.remaining.length||12,12)), arc=Math.PI*2/n;
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(rotation);
+  for(let i=0;i<n;i++) {
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,i*arc,(i+1)*arc); ctx.closePath();
+    ctx.fillStyle=wheelColors[i%wheelColors.length]; ctx.fill();
+    ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.stroke();
+    ctx.save(); ctx.rotate((i+.5)*arc); ctx.translate(r*.67,0); ctx.rotate(Math.PI/2);
+    ctx.fillStyle="#24313d"; ctx.font=`900 ${Math.max(20,Math.min(28,css*.07))}px -apple-system`;
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(i%2===0?"?":"★",0,0);ctx.restore();
+  }
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle="#27364a";ctx.lineWidth=7;ctx.stroke();
+  ctx.restore();
+}
+function spin() {
+  if(state.spinning||state.current||!state.remaining.length) return;
+  state.spinning=true; updateGameUI(); $("#questionState").textContent="輪盤轉動中…";
+  const pick=Math.floor(Math.random()*state.remaining.length);
+  const chosen=state.remaining[pick];
+  const start=performance.now(), from=state.rotation;
+  const extra=(5+Math.random()*3)*Math.PI*2 + Math.random()*Math.PI*2;
+  const duration=1800;
+  function ease(t) { return 1-Math.pow(1-t,4); }
+  function frame(now) {
+    const t=Math.min(1,(now-start)/duration);
+    state.rotation=from+extra*ease(t); drawWheel(state.rotation);
+    if(t<1) requestAnimationFrame(frame); else {
+      state.spinning=false;
+      state.current=chosen; state.remaining.splice(pick,1); state.currentRevealed=false;
+      showHiddenQuestion(); updateGameUI(); setTimeout(()=>speakCurrent(),120);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+function showHiddenQuestion() {
+  $("#questionState").textContent=`第 ${state.attempts.length+1} 題：請聽寫`;
+  $("#hiddenAnswer").hidden=false; $("#hiddenAnswer").textContent="🔒 ？ ？";
+  $("#answer").hidden=true; $("#answerMeta").hidden=true; $("#scoreRow").hidden=true;
+  $("#speakBtn").disabled=false; $("#revealBtn").disabled=false;
+}
+function chooseVoice() {
+  const voices=speechSynthesis.getVoices();
+  return voices.find(v=>/^zh-TW/i.test(v.lang)) || voices.find(v=>/^zh/i.test(v.lang)) || null;
+}
+function speakCurrent() {
+  if(!state.current) return;
+  if(!("speechSynthesis" in window)) return toast("這個瀏覽器不支援語音朗讀");
+  speechSynthesis.cancel();
+  const rate=Number($("#speechRate").value);
+  const voice=chooseVoice();
+  const u1=new SpeechSynthesisUtterance(state.current.word);
+  const u2=new SpeechSynthesisUtterance(state.current.word);
+  [u1,u2].forEach(u=>{u.lang="zh-TW";u.rate=rate;u.pitch=1; if(voice)u.voice=voice;});
+  speechSynthesis.speak(u1); speechSynthesis.speak(u2);
+}
+function reveal() {
+  if(!state.current) return;
+  state.currentRevealed=true;
+  $("#hiddenAnswer").hidden=true; $("#answer").hidden=false; $("#answerMeta").hidden=false; $("#scoreRow").hidden=false;
+  const ans=$("#answer"); ans.innerHTML="";
+  [...state.current.word].forEach(ch=>{
+    const span=document.createElement("span"); span.textContent=ch;
+    if(state.current.targets.includes(ch)) span.className="target";
+    ans.append(span);
+  });
+  $("#answerMeta").innerHTML="";
+  const a=document.createElement("span"); a.className="pill"; a.textContent=`課次：${state.current.lessons.join("、")}`;
+  const b=document.createElement("span"); b.className="pill"; b.textContent=`複習生字：${state.current.targets.join("")||"—"}`;
+  $("#answerMeta").append(a,b);
+  $("#questionState").textContent="核對答案後，請選擇結果";
+}
+function score(result) {
+  if(!state.current||!state.currentRevealed) return;
+  const s=stats(), id=state.current.id;
+  const rec=s[id]||{seen:0,correct:0,wrong:0,needsReview:false,last:null};
+  rec.seen++; rec[result==="correct"?"correct":"wrong"]++;
+  rec.needsReview=result==="wrong"; rec.last=new Date().toISOString(); rec.lastResult=result;
+  s[id]=rec; saveJSON(STORAGE.stats,s);
+  state.attempts.push({
+    id,stateWord:state.current.word,word:state.current.word,lessons:state.current.lessons,
+    targets:state.current.targets,result,at:new Date().toISOString()
+  });
+  state.current=null; state.currentRevealed=false; resetQuestionPanel(); updateGameUI(); drawWheel();
+  if(state.remaining.length===0) finishSession(); else toast(result==="correct"?"答對，繼續下一題！":"已加入再練習清單");
+}
+function finishSession() {
+  $("#spinBtn").disabled=true; $("#questionState").textContent="本輪完成！";
+  const total=state.attempts.length, correct=state.attempts.filter(x=>x.result==="correct").length;
+  const wrong=state.attempts.filter(x=>x.result==="wrong");
+  $("#rTotal").textContent=total; $("#rCorrect").textContent=correct;
+  $("#rAccuracy").textContent=total?`${Math.round(correct/total*100)}%`:"0%";
+  const list=$("#wrongList"); list.innerHTML="";
+  if(!wrong.length) { const x=document.createElement("span");x.className="small";x.textContent="本輪沒有錯題 🎉";list.append(x); }
+  else wrong.forEach(x=>{const s=document.createElement("span");s.className="result-word";s.textContent=x.word;list.append(s)});
+  $("#results").hidden=false;
+  const history=readJSON(STORAGE.history,[]);
+  history.unshift({
+    at:new Date().toISOString(),student:$("#studentName").value.trim(),lessons:selectedLessons(),
+    total,correct,accuracy:total?correct/total:0,attempts:state.attempts
+  });
+  saveJSON(STORAGE.history,history.slice(0,60));
+  $("#progressBar").style.width="100%";
+  toast("完成本輪聽寫");
+}
+function downloadJSON(filename,obj) {
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.append(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function addWord() {
+  const word=$("#newWord").value.trim(), targetStr=$("#newTargets").value.trim();
+  const lessons=[...new Set($("#newLesson").value.split(/[,，\s]+/).map(Number).filter(n=>Number.isFinite(n)&&n>0))].sort((a,b)=>a-b);
+  if(!word||!lessons.length) return toast("請填寫課次與語詞");
+  const item={id:`C${Date.now()}`,word,lessons,targets:[...new Set(targetStr.replace(/[\s,，]/g,"").split("").filter(Boolean))],note:"本機新增"};
+  const next=[...state.bank,item];
+  state.bank=normalizeBank(next); saveJSON(STORAGE.bank,{version:new Date().toISOString(),items:state.bank});
+  state.source="本機自訂"; refreshBankUI();
+  $("#newWord").value=""; $("#newTargets").value=""; toast(`已加入「${word}」`);
+}
+async function importBank(file) {
+  try {
+    const text=await file.text(), j=JSON.parse(text), items=normalizeBank(j.items||j);
+    state.bank=items; saveJSON(STORAGE.bank,{version:new Date().toISOString(),items});
+    state.source="本機匯入"; refreshBankUI(); toast(`已匯入 ${items.length} 個語詞`);
+  } catch(e) { toast("匯入失敗："+e.message); }
+}
+function clearRecords() {
+  if(!confirm("確定要清除這台裝置的答題紀錄與錯題標記？")) return;
+  localStorage.removeItem(STORAGE.stats); localStorage.removeItem(STORAGE.history); toast("學習紀錄已清除");
+}
+$("#startBtn").addEventListener("click",startSession);
+$("#spinBtn").addEventListener("click",spin);
+$("#speakBtn").addEventListener("click",speakCurrent);
+$("#revealBtn").addEventListener("click",reveal);
+$("#correctBtn").addEventListener("click",()=>score("correct"));
+$("#wrongBtn").addEventListener("click",()=>score("wrong"));
+$("#reviewOnly").addEventListener("change",updateEligibleHint);
+$("#speechRate").addEventListener("input",e=>$("#rateLabel").textContent=`${Number(e.target.value).toFixed(2)}×`);
+$("#reviewWrongBtn").addEventListener("click",()=>{$("#reviewOnly").checked=true;updateEligibleHint();startSession();window.scrollTo({top:0,behavior:"smooth"})});
+$("#addWordBtn").addEventListener("click",addWord);
+$("#exportBankBtn").addEventListener("click",()=>downloadJSON("words.json",{version:new Date().toISOString().slice(0,10),title:"南一生字聽寫詞庫",items:state.bank}));
+$("#importBankInput").addEventListener("change",e=>{if(e.target.files[0])importBank(e.target.files[0]);e.target.value=""});
+$("#resetBankBtn").addEventListener("click",()=>{if(confirm("恢復 GitHub／內建詞庫？本機自訂詞庫會被移除。")){localStorage.removeItem(STORAGE.bank);location.reload();}});
+$("#exportRecordBtn").addEventListener("click",()=>downloadJSON(`dictation-record-${new Date().toISOString().slice(0,10)}.json`,{stats:stats(),history:readJSON(STORAGE.history,[])}));
+$("#clearRecordBtn").addEventListener("click",clearRecords);
+window.addEventListener("resize",()=>drawWheel());
+if("speechSynthesis" in window) { speechSynthesis.onvoiceschanged=()=>{state.voices=speechSynthesis.getVoices()}; }
+$("#studentName").value=localStorage.getItem(STORAGE.student)||"";
+drawWheel();
+loadBank();
+if("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
